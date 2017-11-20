@@ -129,35 +129,11 @@ defmodule CodeCorps.GitHub.Sync do
   defp sync_step({:ok, _} = result, _step), do: result
   defp sync_step({:error, _ = error}, _step), do: {:error, error}
 
-  @spec mark_repo(GithubRepo.t, String.t, Keyword.t) :: {:ok, GithubRepo.t} | {:error, Changeset.t}
-  defp mark_repo(%GithubRepo{} = repo, sync_state, opts \\ []) do
-    params = build_sync_params(sync_state, opts)
+  @spec mark_repo(GithubRepo.t, String.t, map) :: {:ok, GithubRepo.t} | {:error, Changeset.t}
+  defp mark_repo(%GithubRepo{} = repo, sync_state, params \\ %{}) do
     repo
-    |> GithubRepo.update_sync_changeset(params)
+    |> GithubRepo.update_sync_changeset(params |> Map.put(:sync_state, sync_state))
     |> Repo.update
-  end
-
-  @count_fields [
-    :syncing_comments_count,
-    :syncing_issues_count,
-    :syncing_pull_requests_count
-  ]
-
-  # Fetches the optional fields (like counter cache fields) for tracking the
-  # sync state.
-  @spec build_sync_params(String.t, Keyword.t) :: map
-  defp build_sync_params(sync_state, opts) do
-    Enum.reduce @count_fields, %{sync_state: sync_state}, fn field, acc ->
-      put_sync_opt(opts, field, acc)
-    end
-  end
-
-  @spec put_sync_opt(Keyword.t, String.t, map) :: map
-  defp put_sync_opt(opts, key, map) do
-    case Keyword.get(opts, key) do
-      nil -> map
-      count -> map |> Map.put(key, count)
-    end
   end
 
   @doc ~S"""
@@ -187,16 +163,16 @@ defmodule CodeCorps.GitHub.Sync do
     repo = preload_github_repo(repo)
     with {:ok, repo} <- repo |> mark_repo("fetching_pull_requests"),
          {:ok, pr_payloads} <- repo |> API.Repository.pulls |> sync_step(:fetch_pull_requests),
-         {:ok, repo} <- repo |> mark_repo("syncing_github_pull_requests", [syncing_pull_requests_count: pr_payloads |> Enum.count]),
+         {:ok, repo} <- repo |> mark_repo("syncing_github_pull_requests", %{syncing_pull_requests_count: pr_payloads |> Enum.count}),
          {:ok, pull_requests} <- pr_payloads |> Enum.map(&Sync.PullRequest.GithubPullRequest.create_or_update_pull_request(repo, &1)) |> ResultAggregator.aggregate |> sync_step(:sync_pull_requests),
          {:ok, repo} <- repo |> mark_repo("fetching_issues"),
          {:ok, issue_payloads} <- repo |> API.Repository.issues |> sync_step(:fetch_issues),
-         {:ok, repo} <- repo |> mark_repo("syncing_github_issues", [syncing_issues_count: issue_payloads |> Enum.count]),
+         {:ok, repo} <- repo |> mark_repo("syncing_github_issues", %{syncing_issues_count: issue_payloads |> Enum.count}),
          paired_issues <- issue_payloads |> pair_issues_payloads_with_prs(pull_requests),
          {:ok, _issues} <- paired_issues |> Enum.map(fn {issue_payload, pr} -> issue_payload |> Sync.Issue.GithubIssue.create_or_update_issue(repo, pr) end) |> ResultAggregator.aggregate |> sync_step(:sync_issues),
          {:ok, repo} <- repo |> mark_repo("fetching_comments"),
          {:ok, comment_payloads} <- repo |> API.Repository.issue_comments |> sync_step(:fetch_comments),
-         {:ok, repo} <- repo |> mark_repo("syncing_github_comments", [syncing_comments_count: comment_payloads |> Enum.count]),
+         {:ok, repo} <- repo |> mark_repo("syncing_github_comments", %{syncing_comments_count: comment_payloads |> Enum.count}),
          {:ok, _comments} <- comment_payloads |> Enum.map(&Sync.Comment.GithubComment.create_or_update_comment(repo, &1)) |> ResultAggregator.aggregate |> sync_step(:sync_comments),
          repo <- GithubRepo |> Repo.get(repo.id) |> preload_github_repo(),
          {:ok, repo} <- repo |> mark_repo("syncing_users"),
