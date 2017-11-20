@@ -188,11 +188,12 @@ defmodule CodeCorps.GitHub.Sync do
     with {:ok, repo} <- repo |> mark_repo("fetching_pull_requests"),
          {:ok, pr_payloads} <- repo |> API.Repository.pulls |> sync_step(:fetch_pull_requests),
          {:ok, repo} <- repo |> mark_repo("syncing_github_pull_requests", [syncing_pull_requests_count: pr_payloads |> Enum.count]),
-         {:ok, _pull_requests} <- pr_payloads |> Enum.map(&Sync.PullRequest.GithubPullRequest.create_or_update_pull_request(repo, &1)) |> ResultAggregator.aggregate |> sync_step(:sync_pull_requests),
+         {:ok, pull_requests} <- pr_payloads |> Enum.map(&Sync.PullRequest.GithubPullRequest.create_or_update_pull_request(repo, &1)) |> ResultAggregator.aggregate |> sync_step(:sync_pull_requests),
          {:ok, repo} <- repo |> mark_repo("fetching_issues"),
          {:ok, issue_payloads} <- repo |> API.Repository.issues |> sync_step(:fetch_issues),
          {:ok, repo} <- repo |> mark_repo("syncing_github_issues", [syncing_issues_count: issue_payloads |> Enum.count]),
-         {:ok, _issues} <- issue_payloads |> Enum.map(&Sync.Issue.GithubIssue.create_or_update_issue(&1, repo)) |> ResultAggregator.aggregate |> sync_step(:sync_issues),
+         paired_issues <- issue_payloads |> pair_issues_payloads_with_prs(pull_requests),
+         {:ok, _issues} <- paired_issues |> Enum.map(fn {issue_payload, pr} -> issue_payload |> Sync.Issue.GithubIssue.create_or_update_issue(repo, pr) end) |> ResultAggregator.aggregate |> sync_step(:sync_issues),
          {:ok, repo} <- repo |> mark_repo("fetching_comments"),
          {:ok, comment_payloads} <- repo |> API.Repository.issue_comments |> sync_step(:fetch_comments),
          {:ok, repo} <- repo |> mark_repo("syncing_github_comments", [syncing_comments_count: comment_payloads |> Enum.count]),
@@ -218,6 +219,16 @@ defmodule CodeCorps.GitHub.Sync do
       {:error, :sync_tasks} -> repo |> mark_repo("errored_syncing_tasks")
       {:error, :sync_comments} -> repo |> mark_repo("errored_syncing_comments")
     end
+  end
+
+  @spec pair_issues_payloads_with_prs(list, list) :: list(tuple)
+  defp pair_issues_payloads_with_prs(issue_payloads, pull_requests) do
+    issue_payloads |> Enum.map(fn %{"number" => number} = issue_payload ->
+      matching_pr =
+        pull_requests
+        |> Enum.find(nil, fn pr -> pr |> Map.get(:number) == number end)
+      {issue_payload, matching_pr}
+    end)
   end
 
   defp preload_github_repo(%GithubRepo{} = github_repo) do
