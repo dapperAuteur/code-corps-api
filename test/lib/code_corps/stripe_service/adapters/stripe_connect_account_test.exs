@@ -7,7 +7,8 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountTest do
     # If a `Stripe.Account` has multiple `Stripe.ExternalAccount` records, we
     # want the adapter to deal with that by only taking one, so we load the
     # appropriate fixture
-    CodeCorps.StripeTesting.Helpers.load_fixture("account_with_multiple_external_accounts")
+    "account_with_multiple_external_accounts"
+    |> CodeCorps.StripeTesting.Account.load_fixture
   end
 
   @local_map %{
