@@ -76,6 +76,17 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountAdapter do
     {:ok, result}
   end
 
+  def from_params_update(%{} = attributes) do
+    result =
+      attributes
+      |> remove_attributes()
+      |> MapUtils.keys_to_atom()
+      |> MapTransformer.transform_inverse(@stripe_mapping)
+      |> Map.drop([:type])
+
+    {:ok, result}
+  end
+
   @doc """
   Transforms a `%Stripe.Account{}` and a set of local attributes into a
   map of parameters used to create or update a `StripeConnectAccount` record.

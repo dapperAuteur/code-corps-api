@@ -35,7 +35,7 @@ defmodule CodeCorps.StripeService.StripeConnectAccountService do
   using attributes sent by the client
   """
   def update(%StripeConnectAccount{id_from_stripe: id_from_stripe} = local_account, %{} = attributes) do
-    with {:ok, from_params} <- StripeConnectAccountAdapter.from_params(attributes),
+    with {:ok, from_params} <- StripeConnectAccountAdapter.from_params_update(attributes),
          {:ok, %Stripe.Account{} = api_account} <- @api.Account.update(id_from_stripe, from_params)
     do
       update_local_account(local_account, api_account, attributes)
