@@ -33,7 +33,7 @@ defmodule CodeCorps.StripeService.StripePlatformCardService do
 
   def update_from_stripe(card_id) do
     with %StripePlatformCard{} = record <- Repo.get_by(StripePlatformCard, id_from_stripe: card_id),
-         {:ok, %Stripe.Card{} = stripe_card} <- @api.Card.retrieve(:customer, record.customer_id_from_stripe, card_id),
+         {:ok, %Stripe.Card{} = stripe_card} <- @api.Card.retrieve(card_id, %{customer: record.customer_id_from_stripe}),
          {:ok, params} <- StripePlatformCardAdapter.to_params(stripe_card, %{})
     do
       perform_update(record, params)
