@@ -139,34 +139,34 @@ defmodule CodeCorpsWeb.StripeConnectAccountViewTest do
 
   describe "recipient-status" do
     test "renders as 'required' by default" do
-      account = insert(:stripe_connect_account,  legal_entity_verification_status: "unverified")
+      account = insert(:stripe_connect_account, legal_entity_verification_status: "unverified")
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
       assert rendered_json["data"]["attributes"]["recipient-status"] == "required"
     end
 
-    test "renders as 'verifying' when fields_needed includes personal_id_number" do
-      account = insert(:stripe_connect_account,  legal_entity_verification_status: "unverified", verification_fields_needed: ["legal_entity.personal_id_number"])
+    test "renders as 'required' when fields_needed includes personal_id_number" do
+      account = insert(:stripe_connect_account, legal_entity_verification_status: "pending", verification_fields_needed: ["legal_entity.personal_id_number"])
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
-      assert rendered_json["data"]["attributes"]["recipient-status"] == "verifying"
+      assert rendered_json["data"]["attributes"]["recipient-status"] == "required"
     end
 
-    test "renders as 'verifying' when fields_needed includes verification.document" do
-      account = insert(:stripe_connect_account,  legal_entity_verification_status: "unverified", verification_fields_needed: ["legal_entity.verification.document"])
+    test "renders as 'required' when fields_needed includes verification.document" do
+      account = insert(:stripe_connect_account, legal_entity_verification_status: "pending", verification_fields_needed: ["legal_entity.verification.document"])
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
-      assert rendered_json["data"]["attributes"]["recipient-status"] == "verifying"
+      assert rendered_json["data"]["attributes"]["recipient-status"] == "required"
     end
 
-    test "renders as 'verifying' when appropriate" do
-      account = insert(:stripe_connect_account, legal_entity_verification_status: "pending")
+    test "renders as 'verified' when fields_needed does not include a legal_entity field" do
+      account = insert(:stripe_connect_account, legal_entity_verification_status: "pending", verification_fields_needed: [])
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
-      assert rendered_json["data"]["attributes"]["recipient-status"] == "verifying"
+      assert rendered_json["data"]["attributes"]["recipient-status"] == "verified"
     end
 
-    test "renders as 'verified' when appropriate" do
+    test "renders as 'verified' when verification status is 'verified'" do
       account = insert(:stripe_connect_account, legal_entity_verification_status: "verified")
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
