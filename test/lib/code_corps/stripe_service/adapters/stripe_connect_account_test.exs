@@ -68,6 +68,8 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountTest do
     "legal_entity_verification_document" => "fil_12345",
     "legal_entity_verification_status" => "unverified",
 
+    "payouts_enabled" => false,
+
     "support_email" => nil,
     "support_phone" => "1234567890",
     "support_url" => nil,
@@ -75,8 +77,6 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountTest do
     "tos_acceptance_date" => nil,
     "tos_acceptance_ip" => nil,
     "tos_acceptance_user_agent" => nil,
-
-    "transfers_enabled" => false,
 
     "type" => "custom",
 
@@ -120,7 +120,7 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountTest do
         email: "someone@mail.com",
         id: "account_with_multiple_external_accounts",
         support_phone: "1234567890",
-        transfers_enabled: false,
+        payouts_enabled: false,
         type: "custom",
         legal_entity: %{
           business_name: "Some Company Inc.",

@@ -55,7 +55,7 @@ defmodule CodeCorps.StripeTesting.Account do
       "support_phone" => "1234567890",
       "support_url" => nil,
       "timezone" => "America/Los_Angeles",
-      "transfers_enabled" => true
+      "payouts_enabled" => true
     }
   end
 

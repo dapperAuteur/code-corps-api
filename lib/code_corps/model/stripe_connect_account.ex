@@ -59,6 +59,8 @@ defmodule CodeCorps.StripeConnectAccount do
 
     field :managed, :boolean, default: true
 
+    field :payouts_enabled, :boolean
+
     field :support_email, :string
     field :support_phone, :string
     field :support_url, :string
@@ -66,7 +68,6 @@ defmodule CodeCorps.StripeConnectAccount do
     field :tos_acceptance_date, :integer
     field :tos_acceptance_ip, :string
     field :tos_acceptance_user_agent, :string
-    field :transfers_enabled, :boolean
 
     field :verification_disabled_reason, :string
     field :verification_due_by, :integer
@@ -129,7 +130,7 @@ defmodule CodeCorps.StripeConnectAccount do
     :tos_acceptance_date,
     :tos_acceptance_ip,
     :tos_acceptance_user_agent,
-    :transfers_enabled,
+    :payouts_enabled,
     :verification_disabled_reason,
     :verification_due_by,
     :verification_fields_needed

@@ -113,7 +113,7 @@
     "interval": "daily"
   },
   "transfer_statement_descriptor": null,
-  "transfers_enabled": false,
+  "payouts_enabled": false,
   "type": "custom",
   "verification": {
     "disabled_reason": "fields_needed",
