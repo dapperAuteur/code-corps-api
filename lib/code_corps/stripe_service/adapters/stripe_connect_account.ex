@@ -49,7 +49,6 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountAdapter do
     {:legal_entity_verification_details_code, [:legal_entity, :verification, :details_code]},
     {:legal_entity_verification_document, [:legal_entity, :verification, :document]},
     {:legal_entity_verification_status, [:legal_entity, :verification, :status]},
-    {:managed, [:managed]},
     {:support_email, [:support_email]},
     {:support_phone, [:support_phone]},
     {:support_url, [:support_url]},
@@ -57,6 +56,7 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountAdapter do
     {:tos_acceptance_ip, [:tos_acceptance, :ip]},
     {:tos_acceptance_user_agent, [:tos_acceptance, :user_agent]},
     {:transfers_enabled, [:transfers_enabled]},
+    {:type, [:type]},
     {:verification_disabled_reason, [:verification, :disabled_reason]},
     {:verification_due_by, [:verification, :due_by]},
     {:verification_fields_needed, [:verification, :fields_needed]}
@@ -120,7 +120,7 @@ defmodule CodeCorps.StripeService.Adapters.StripeConnectAccountAdapter do
   end
 
   defp do_add_external_account(map, nil), do: map
-  defp do_add_external_account(map, %Stripe.ExternalAccount{id: id}) do
+  defp do_add_external_account(map, %Stripe.BankAccount{id: id}) do
     map |> Map.put(:external_account, id)
   end
 

@@ -12,7 +12,7 @@ defmodule CodeCorps.StripeTesting.Helpers do
   @spec load_fixture(String.t) :: struct
   def load_fixture(id) do
     fixture_map = id |> build_file_path |> File.read! |> Poison.decode!
-    Stripe.Converter.stripe_map_to_struct(fixture_map)
+    Stripe.Converter.convert_result(fixture_map)
   end
 
   defp build_file_path(id), do: id |> append_extension |> join_with_path

@@ -25,7 +25,7 @@ defmodule CodeCorps.StripeTesting.Account do
       |> add_nestings
 
 
-    Stripe.Converter.stripe_map_to_struct(transformed_attributes)
+    Stripe.Converter.convert_result(transformed_attributes)
   end
 
   defp account_fixture do
