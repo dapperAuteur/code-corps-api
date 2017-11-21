@@ -1,4 +1,6 @@
 defmodule CodeCorpsWeb.StripeConnectAccountViewTest do
+  @moduledoc false
+
   use CodeCorpsWeb.ViewCase
 
   test "renders all attributes and relationships properly" do
@@ -215,7 +217,7 @@ defmodule CodeCorpsWeb.StripeConnectAccountViewTest do
     test "renders as 'verified' when no fields" do
       account = insert(
         :stripe_connect_account,
-        verification_fields_needed: nil)
+        verification_fields_needed: [])
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
       assert rendered_json["data"]["attributes"]["verification-document-status"] == "verified"
@@ -283,7 +285,7 @@ defmodule CodeCorpsWeb.StripeConnectAccountViewTest do
     test "renders as 'verified' when no fields" do
       account = insert(
         :stripe_connect_account,
-        verification_fields_needed: nil)
+        verification_fields_needed: [])
       account = CodeCorpsWeb.StripeConnectAccountController.preload(account)
       rendered_json = render(CodeCorpsWeb.StripeConnectAccountView, "show.json-api", data: account)
       assert rendered_json["data"]["attributes"]["personal-id-number-status"] == "verified"

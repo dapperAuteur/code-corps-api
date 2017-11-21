@@ -98,7 +98,7 @@ defmodule CodeCorpsWeb.StripeConnectAccountView do
   the returned status is "required".
   If the veficication status
   """
-  @spec recipient_status(StripeConnectAccount.t) :: String.t
+  @spec recipient_status(StripeConnectAccount.t, Conn.t) :: String.t
   def recipient_status(stripe_connect_account, _conn) do
     get_recipient_status(stripe_connect_account)
   end
@@ -130,17 +130,33 @@ defmodule CodeCorpsWeb.StripeConnectAccountView do
     |> Enum.member?(field_group)
   end
 
-  # verification_document_status
+  @doc ~S"""
+  Returns the inferred verification document status, based on verification
+  fields needed, the verification status, and the document field itself
 
+  - If status is already verified, returns verified
+  - If there is no document and fields needed include the document,
+    returns `required`
+  - If there is no document and fields needed do not include the document,
+    returns `pending_requirement`
+  - If there is a document and verification status is pending,
+    returns 'verifying'
+  - If there is a document and fields needed include the document, status is
+    `errored`
+  - If there is a document and fields needed do not included, status is
+    `verified`
+  """
+  @spec verification_document_status(StripeConnectAccount.t, Conn.t) :: String.t
   def verification_document_status(stripe_connect_account, _conn) do
     get_verification_document_status(stripe_connect_account)
   end
 
-  defp get_verification_document_status(%StripeConnectAccount{verification_fields_needed: nil
-  }), do: "verified"
+  @spec get_verification_document_status(StripeConnectAccount.t) :: String.t
+  defp get_verification_document_status(
+    %StripeConnectAccount{verification_fields_needed: []}), do: "verified"
   defp get_verification_document_status(%StripeConnectAccount{
     legal_entity_verification_document: nil, verification_fields_needed: fields
-  }) do
+  }) when length(fields) > 0 do
     case Enum.member?(fields, "legal_entity.verification.document") do
       true -> "required"
       false -> "pending_requirement"
@@ -152,7 +168,7 @@ defmodule CodeCorpsWeb.StripeConnectAccountView do
   defp get_verification_document_status(%StripeConnectAccount{
     legal_entity_verification_document: _,
     verification_fields_needed: fields
-  }) do
+  }) when length(fields) > 0 do
     case Enum.member?(fields, "legal_entity.verification.document") do
       true -> "errored"
       false -> "verified"
@@ -191,7 +207,7 @@ defmodule CodeCorpsWeb.StripeConnectAccountView do
 
   defp get_bank_account_status(%StripeConnectAccount{
     verification_fields_needed: fields
-  }) do
+  }) when length(fields) > 0 do
     case Enum.member?(fields, "external_account") do
       true -> "required"
       false -> "verified"
